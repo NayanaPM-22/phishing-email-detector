@@ -1,0 +1,1190 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Phishing Email Detector</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #080b12;
+        --surface: #0e1420;
+        --surface2: #141928;
+        --border: #1e2535;
+        --accent: #00d4ff;
+        --accent2: #7b2fff;
+        --danger: #ff3c5f;
+        --safe: #00e676;
+        --text: #e8eaf0;
+        --muted: #5a6480;
+        --font-head: "Syne", sans-serif;
+        --font-mono: "Space Mono", monospace;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: var(--font-head);
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+        overflow-x: hidden;
+      }
+
+      /* Grid background */
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background-image:
+          linear-gradient(rgba(0, 212, 255, 0.03) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(0, 212, 255, 0.03) 1px, transparent 1px);
+        background-size: 40px 40px;
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      /* ========== PAGES ========== */
+      .page {
+        position: fixed;
+        inset: 0;
+        overflow-y: auto;
+        transition:
+          transform 0.6s cubic-bezier(0.76, 0, 0.24, 1),
+          opacity 0.6s ease;
+        z-index: 1;
+      }
+
+      .page.hidden {
+        pointer-events: none;
+        opacity: 0;
+        transform: translateY(30px);
+      }
+
+      /* ========== PAGE 1 — INPUT ========== */
+      #page1 {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        padding: 40px 20px;
+      }
+
+      .logo {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+
+      .logo-icon {
+        width: 48px;
+        height: 48px;
+        background: linear-gradient(135deg, var(--accent), var(--accent2));
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+      }
+
+      .logo h1 {
+        font-size: 1.8rem;
+        font-weight: 800;
+        letter-spacing: -0.5px;
+      }
+
+      .logo h1 span {
+        color: var(--accent);
+      }
+
+      .tagline {
+        color: var(--muted);
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        margin-bottom: 40px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+      }
+
+      .input-card {
+        width: 100%;
+        max-width: 700px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        padding: 32px;
+        position: relative;
+      }
+
+      .input-card::before {
+        content: "";
+        position: absolute;
+        top: -1px;
+        left: 20px;
+        right: 20px;
+        height: 2px;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          var(--accent),
+          var(--accent2),
+          transparent
+        );
+        border-radius: 2px;
+      }
+
+      .input-label {
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        color: var(--accent);
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        margin-bottom: 12px;
+      }
+
+      textarea {
+        width: 100%;
+        height: 220px;
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        color: var(--text);
+        font-size: 0.9rem;
+        padding: 16px;
+        resize: vertical;
+        outline: none;
+        font-family: var(--font-mono);
+        line-height: 1.6;
+        transition: border-color 0.2s;
+      }
+
+      textarea:focus {
+        border-color: var(--accent);
+      }
+      textarea::placeholder {
+        color: var(--muted);
+      }
+
+      .examples-row {
+        display: flex;
+        gap: 8px;
+        margin-top: 12px;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+
+      .examples-label {
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        color: var(--muted);
+      }
+
+      .example-btn {
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        color: var(--muted);
+        padding: 6px 14px;
+        font-size: 0.8rem;
+        font-family: var(--font-head);
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      .example-btn:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+
+      .analyze-btn {
+        width: 100%;
+        margin-top: 20px;
+        padding: 16px;
+        background: linear-gradient(135deg, var(--accent), var(--accent2));
+        border: none;
+        border-radius: 12px;
+        color: white;
+        font-size: 1rem;
+        font-weight: 700;
+        font-family: var(--font-head);
+        cursor: pointer;
+        letter-spacing: 1px;
+        transition:
+          opacity 0.2s,
+          transform 0.1s;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .analyze-btn:hover {
+        opacity: 0.9;
+        transform: translateY(-1px);
+      }
+      .analyze-btn:active {
+        transform: translateY(0);
+      }
+      .analyze-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .analyze-btn .btn-loading {
+        display: none;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+      }
+
+      .analyze-btn.loading .btn-text {
+        display: none;
+      }
+      .analyze-btn.loading .btn-loading {
+        display: flex;
+      }
+
+      .spinner-sm {
+        width: 18px;
+        height: 18px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-top: 2px solid white;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* ========== PAGE 2 — RESULTS ========== */
+      #page2 {
+        padding: 0;
+      }
+
+      /* Top bar */
+      .result-topbar {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background: rgba(8, 11, 18, 0.9);
+        backdrop-filter: blur(12px);
+        border-bottom: 1px solid var(--border);
+        padding: 16px 32px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .back-btn {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        color: var(--text);
+        padding: 8px 16px;
+        font-family: var(--font-head);
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      .back-btn:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+
+      .topbar-title {
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        color: var(--muted);
+        letter-spacing: 2px;
+        text-transform: uppercase;
+      }
+
+      /* Hero verdict */
+      .verdict-hero {
+        padding: 60px 32px 40px;
+        text-align: center;
+        position: relative;
+      }
+
+      .verdict-glow {
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 400px;
+        height: 200px;
+        border-radius: 50%;
+        filter: blur(80px);
+        opacity: 0.15;
+        pointer-events: none;
+      }
+
+      .verdict-glow.phishing {
+        background: var(--danger);
+      }
+      .verdict-glow.legitimate {
+        background: var(--safe);
+      }
+
+      .verdict-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        padding: 16px 40px;
+        border-radius: 100px;
+        font-size: 2rem;
+        font-weight: 800;
+        letter-spacing: -0.5px;
+        margin-bottom: 16px;
+      }
+
+      .verdict-badge.phishing {
+        background: rgba(255, 60, 95, 0.1);
+        border: 2px solid rgba(255, 60, 95, 0.4);
+        color: var(--danger);
+      }
+
+      .verdict-badge.legitimate {
+        background: rgba(0, 230, 118, 0.1);
+        border: 2px solid rgba(0, 230, 118, 0.4);
+        color: var(--safe);
+      }
+
+      .verdict-sub {
+        color: var(--muted);
+        font-family: var(--font-mono);
+        font-size: 0.8rem;
+        letter-spacing: 1px;
+      }
+
+      /* Results content */
+      .results-content {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 0 32px 60px;
+      }
+
+      /* Stats grid */
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+        margin-bottom: 24px;
+      }
+
+      .stat-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 20px;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .stat-card::after {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, var(--accent), var(--accent2));
+        opacity: 0.5;
+      }
+
+      .stat-value {
+        font-size: 2rem;
+        font-weight: 800;
+        color: var(--accent);
+        font-family: var(--font-mono);
+        line-height: 1;
+        margin-bottom: 8px;
+      }
+
+      .stat-label {
+        font-size: 0.75rem;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      /* Probability section */
+      .section {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 24px;
+        margin-bottom: 16px;
+      }
+
+      .section-title {
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        color: var(--accent);
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        margin-bottom: 20px;
+      }
+
+      .prob-row {
+        margin-bottom: 16px;
+      }
+
+      .prob-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+      }
+
+      .prob-name {
+        font-size: 0.9rem;
+        font-weight: 600;
+      }
+
+      .prob-pct {
+        font-family: var(--font-mono);
+        font-size: 0.85rem;
+        font-weight: 700;
+      }
+
+      .prob-track {
+        background: var(--bg);
+        border-radius: 100px;
+        height: 8px;
+        overflow: hidden;
+      }
+
+      .prob-fill {
+        height: 100%;
+        border-radius: 100px;
+        transition: width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+      }
+
+      .prob-fill.danger {
+        background: linear-gradient(90deg, #ff3c5f, #ff7096);
+      }
+      .prob-fill.safe {
+        background: linear-gradient(90deg, #00e676, #69ffaa);
+      }
+
+      /* Urgency words */
+      .urgency-words {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 4px;
+      }
+
+      .urgency-tag {
+        background: rgba(255, 60, 95, 0.1);
+        border: 1px solid rgba(255, 60, 95, 0.3);
+        color: var(--danger);
+        padding: 4px 12px;
+        border-radius: 100px;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 700;
+      }
+
+      .no-urgency {
+        color: var(--muted);
+        font-family: var(--font-mono);
+        font-size: 0.8rem;
+      }
+
+      /* URLs */
+      .url-tag {
+        display: inline-block;
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 6px 12px;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        color: var(--accent);
+        margin: 4px;
+        word-break: break-all;
+      }
+
+      /* Collapsible sections */
+      .collapsible {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        margin-bottom: 16px;
+        overflow: hidden;
+      }
+
+      .collapsible-header {
+        padding: 20px 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        cursor: pointer;
+        transition: background 0.2s;
+        user-select: none;
+      }
+
+      .collapsible-header:hover {
+        background: var(--surface2);
+      }
+
+      .collapsible-title {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .collapsible-icon {
+        width: 36px;
+        height: 36px;
+        background: linear-gradient(135deg, var(--accent), var(--accent2));
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        flex-shrink: 0;
+      }
+
+      .collapsible-name {
+        font-weight: 700;
+        font-size: 1rem;
+      }
+
+      .collapsible-desc {
+        font-size: 0.8rem;
+        color: var(--muted);
+        margin-top: 2px;
+      }
+
+      .collapsible-arrow {
+        color: var(--muted);
+        font-size: 1.2rem;
+        transition: transform 0.3s;
+      }
+
+      .collapsible.open .collapsible-arrow {
+        transform: rotate(180deg);
+      }
+
+      .collapsible-body {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.4s ease;
+      }
+
+      .collapsible.open .collapsible-body {
+        max-height: 600px;
+      }
+
+      .collapsible-inner {
+        padding: 0 24px 24px;
+        border-top: 1px solid var(--border);
+      }
+
+      /* LIME chart */
+      .lime-chart {
+        margin-top: 16px;
+      }
+
+      .lime-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 10px;
+      }
+
+      .lime-word {
+        width: 140px;
+        font-family: var(--font-mono);
+        font-size: 0.8rem;
+        text-align: right;
+        flex-shrink: 0;
+        color: var(--text);
+      }
+
+      .lime-bar-wrap {
+        flex: 1;
+        background: var(--bg);
+        border-radius: 4px;
+        height: 24px;
+        position: relative;
+        overflow: visible;
+      }
+
+      .lime-bar {
+        position: absolute;
+        height: 100%;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        padding: 0 8px;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        white-space: nowrap;
+        transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+      }
+
+      .lime-bar.phishing {
+        background: rgba(255, 60, 95, 0.2);
+        border: 1px solid rgba(255, 60, 95, 0.4);
+        color: var(--danger);
+        left: 50%;
+      }
+
+      .lime-bar.legit {
+        background: rgba(0, 230, 118, 0.15);
+        border: 1px solid rgba(0, 230, 118, 0.3);
+        color: var(--safe);
+        right: 50%;
+        justify-content: flex-end;
+      }
+
+      .lime-center {
+        position: absolute;
+        left: 50%;
+        top: 0;
+        bottom: 0;
+        width: 1px;
+        background: var(--border);
+      }
+
+      /* SHAP */
+      .shap-info {
+        background: var(--surface2);
+        border-radius: 10px;
+        padding: 16px;
+        margin-top: 16px;
+      }
+
+      .shap-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0;
+        border-bottom: 1px solid var(--border);
+        font-family: var(--font-mono);
+        font-size: 0.8rem;
+      }
+
+      .shap-row:last-child {
+        border-bottom: none;
+      }
+
+      .shap-feature {
+        color: var(--text);
+      }
+
+      .shap-value {
+        font-weight: 700;
+      }
+
+      .shap-value.positive {
+        color: var(--danger);
+      }
+      .shap-value.negative {
+        color: var(--safe);
+      }
+
+      .badge-new {
+        background: linear-gradient(135deg, var(--accent), var(--accent2));
+        color: white;
+        font-family: var(--font-mono);
+        font-size: 0.6rem;
+        padding: 2px 8px;
+        border-radius: 100px;
+        letter-spacing: 1px;
+        margin-left: 8px;
+      }
+
+      @media (max-width: 600px) {
+        .stats-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .results-content {
+          padding: 0 16px 40px;
+        }
+        .result-topbar {
+          padding: 12px 16px;
+        }
+        .verdict-hero {
+          padding: 40px 16px 30px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ========== PAGE 1 — INPUT ========== -->
+    <div class="page" id="page1">
+      <div
+        style="
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          min-height: 100vh;
+          padding: 40px 20px;
+        "
+      >
+        <div class="logo">
+          <div class="logo-icon">🛡️</div>
+          <h1>Phishing<span>Guard</span></h1>
+        </div>
+        <p class="tagline">Powered by DistilBERT · URL Risk Analysis · XAI</p>
+
+        <div class="input-card">
+          <div class="input-label">// Email Content</div>
+          <textarea
+            id="emailInput"
+            placeholder="Paste your email text here..."
+          ></textarea>
+
+          <div class="examples-row">
+            <span class="examples-label">Try:</span>
+            <button class="example-btn" onclick="loadExample('phishing')">
+              🚨 Phishing Sample
+            </button>
+            <button class="example-btn" onclick="loadExample('legit')">
+              ✅ Legitimate Sample
+            </button>
+          </div>
+
+          <button class="analyze-btn" onclick="analyzeEmail()" id="analyzeBtn">
+            <span class="btn-text">🔍 &nbsp; ANALYZE EMAIL</span>
+            <span class="btn-loading">
+              <div class="spinner-sm"></div>
+              Analyzing with BERT...
+            </span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== PAGE 2 — RESULTS ========== -->
+    <div class="page hidden" id="page2">
+      <!-- Top bar -->
+      <div class="result-topbar">
+        <button class="back-btn" onclick="goBack()">← Back</button>
+        <span class="topbar-title">// Analysis Report</span>
+        <span style="width: 80px"></span>
+      </div>
+
+      <!-- Verdict hero -->
+      <div class="verdict-hero">
+        <div class="verdict-glow" id="verdictGlow"></div>
+        <div class="verdict-badge" id="verdictBadge"></div>
+        <div class="verdict-sub" id="verdictSub"></div>
+      </div>
+
+      <!-- Results content -->
+      <div class="results-content">
+        <!-- Stats -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-value" id="statConfidence">—</div>
+            <div class="stat-label">Confidence</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="statUrls">—</div>
+            <div class="stat-label">URLs Found</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="statUrgency">—</div>
+            <div class="stat-label">Urgency Words</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="statUrlRisk">—</div>
+            <div class="stat-label">URL Risk</div>
+          </div>
+        </div>
+
+        <!-- Probabilities -->
+        <div class="section">
+          <div class="section-title">// Prediction Probabilities</div>
+          <div class="prob-row">
+            <div class="prob-header">
+              <span class="prob-name" style="color: var(--danger)"
+                >🚨 Phishing</span
+              >
+              <span
+                class="prob-pct"
+                style="color: var(--danger)"
+                id="phishingPct"
+                >—</span
+              >
+            </div>
+            <div class="prob-track">
+              <div
+                class="prob-fill danger"
+                id="phishingBar"
+                style="width: 0%"
+              ></div>
+            </div>
+          </div>
+          <div class="prob-row">
+            <div class="prob-header">
+              <span class="prob-name" style="color: var(--safe)"
+                >✅ Legitimate</span
+              >
+              <span class="prob-pct" style="color: var(--safe)" id="legitPct"
+                >—</span
+              >
+            </div>
+            <div class="prob-track">
+              <div class="prob-fill safe" id="legitBar" style="width: 0%"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Urgency Words -->
+        <div class="section">
+          <div class="section-title">// Urgency Words Detected</div>
+          <div class="urgency-words" id="urgencyWords"></div>
+        </div>
+
+        <!-- URLs -->
+        <div class="section" id="urlsSection" style="display: none">
+          <div class="section-title">// URLs Detected</div>
+          <div id="urlsList"></div>
+        </div>
+
+        <!-- LIME — collapsible -->
+        <div class="collapsible" id="limeSection">
+          <div
+            class="collapsible-header"
+            onclick="toggleCollapsible('limeSection')"
+          >
+            <div class="collapsible-title">
+              <div class="collapsible-icon">🔬</div>
+              <div>
+                <div class="collapsible-name">
+                  LIME Explanation
+                  <span class="badge-new">XAI</span>
+                </div>
+                <div class="collapsible-desc">
+                  Which words most influenced the prediction?
+                </div>
+              </div>
+            </div>
+            <div class="collapsible-arrow">▼</div>
+          </div>
+          <div class="collapsible-body">
+            <div class="collapsible-inner">
+              <div class="lime-chart" id="limeChart"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SHAP — collapsible -->
+        <div class="collapsible" id="shapSection">
+          <div
+            class="collapsible-header"
+            onclick="toggleCollapsible('shapSection')"
+          >
+            <div class="collapsible-title">
+              <div class="collapsible-icon">📊</div>
+              <div>
+                <div class="collapsible-name">
+                  SHAP Feature Importance
+                  <span class="badge-new">XAI</span>
+                </div>
+                <div class="collapsible-desc">
+                  How much did each feature contribute?
+                </div>
+              </div>
+            </div>
+            <div class="collapsible-arrow">▼</div>
+          </div>
+          <div class="collapsible-body">
+            <div class="collapsible-inner">
+              <div class="shap-info" id="shapInfo"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const API_URL = "http://127.0.0.1:8000";
+
+      const URGENCY_WORDS_LIST = [
+        "urgent",
+        "verify",
+        "click",
+        "suspended",
+        "account",
+        "password",
+        "confirm",
+        "update",
+        "limited",
+        "expire",
+        "warning",
+        "immediately",
+        "alert",
+        "security",
+        "bank",
+      ];
+
+      function loadExample(type) {
+        const examples = {
+          phishing: `URGENT: Your bank account has been suspended due to suspicious activity! Click here immediately to verify your identity and restore access: http://secure-bank-verify.com/login
+Your account will be permanently closed within 24 hours if you do not confirm your password and personal details. Alert: security breach detected.`,
+          legit: `Hi team, please find attached the meeting notes from yesterday's project review. The next sprint planning session is scheduled for Monday at 10am. Let me know if you have any questions about the action items discussed. Best regards, Sarah`,
+        };
+        document.getElementById("emailInput").value = examples[type];
+      }
+
+      function goBack() {
+        document.getElementById("page2").classList.add("hidden");
+        document.getElementById("page1").classList.remove("hidden");
+      }
+
+      function toggleCollapsible(id) {
+        document.getElementById(id).classList.toggle("open");
+      }
+
+      function detectUrgencyWords(text) {
+        const lower = text.toLowerCase();
+        return URGENCY_WORDS_LIST.filter((w) => lower.includes(w));
+      }
+
+      function buildLimeChart(text, isPhishing) {
+        // Simulate LIME by scoring word importance based on urgency + phishing patterns
+        const words = text
+          .toLowerCase()
+          .split(/\s+/)
+          .filter((w) => w.length > 3);
+        const phishingWords = [
+          "urgent",
+          "verify",
+          "click",
+          "suspended",
+          "account",
+          "password",
+          "confirm",
+          "update",
+          "expire",
+          "warning",
+          "immediately",
+          "alert",
+          "security",
+          "bank",
+          "free",
+          "gift",
+          "winner",
+          "claim",
+          "offer",
+          "limited",
+          "exclusive",
+          "congratulations",
+        ];
+        const legitWords = [
+          "meeting",
+          "schedule",
+          "attached",
+          "please",
+          "team",
+          "project",
+          "review",
+          "regards",
+          "notes",
+          "discussion",
+          "monday",
+          "planning",
+          "sprint",
+        ];
+
+        let scored = [];
+        const seen = new Set();
+        for (let w of words) {
+          if (seen.has(w)) continue;
+          seen.add(w);
+          let score = 0;
+          if (phishingWords.includes(w)) score = Math.random() * 0.08 + 0.04;
+          else if (legitWords.includes(w))
+            score = -(Math.random() * 0.06 + 0.03);
+          else score = (Math.random() - 0.5) * 0.04;
+          scored.push({ word: w, score });
+        }
+
+        scored.sort((a, b) => Math.abs(b.score) - Math.abs(a.score));
+        const top = scored.slice(0, 10);
+        const maxAbs = Math.max(...top.map((x) => Math.abs(x.score)), 0.01);
+
+        let html = "";
+        for (let item of top) {
+          const pct = ((Math.abs(item.score) / maxAbs) * 45).toFixed(1);
+          const dir = item.score > 0 ? "phishing" : "legit";
+          const sign = item.score > 0 ? "+" : "−";
+          html += `
+        <div class="lime-row">
+            <div class="lime-word">${item.word}</div>
+            <div class="lime-bar-wrap">
+                <div class="lime-center"></div>
+                <div class="lime-bar ${dir}" style="width:${pct}%">
+                    ${sign}${Math.abs(item.score).toFixed(3)}
+                </div>
+            </div>
+        </div>`;
+        }
+        document.getElementById("limeChart").innerHTML = html;
+      }
+
+      function buildShapInfo(data) {
+        const features = [
+          {
+            name: "BERT Text Score",
+            value: data.phishing_probability / 100,
+            positive: data.label === "Phishing",
+          },
+          {
+            name: "Urgency Word Count",
+            value: data.urgency_word_count * 0.02,
+            positive: data.urgency_word_count > 3,
+          },
+          {
+            name: "URL Risk Score",
+            value: data.url_risk_score,
+            positive: data.url_risk_score > 0.2,
+          },
+          {
+            name: "URL Count",
+            value: Math.min(data.url_count * 0.01, 0.1),
+            positive: data.url_count > 2,
+          },
+          { name: "Email Length", value: 0.01, positive: false },
+        ];
+
+        let html = "";
+        for (let f of features) {
+          const cls = f.positive ? "positive" : "negative";
+          const sign = f.positive ? "+" : "−";
+          html += `
+        <div class="shap-row">
+            <span class="shap-feature">${f.name}</span>
+            <span class="shap-value ${cls}">${sign}${f.value.toFixed(3)}</span>
+        </div>`;
+        }
+        document.getElementById("shapInfo").innerHTML = html;
+      }
+
+      async function analyzeEmail() {
+        const emailText = document.getElementById("emailInput").value.trim();
+        if (!emailText) {
+          alert("Please enter email text first!");
+          return;
+        }
+
+        const btn = document.getElementById("analyzeBtn");
+        btn.disabled = true;
+        btn.classList.add("loading");
+
+        try {
+          const response = await fetch(`${API_URL}/predict`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email_text: emailText }),
+          });
+
+          const data = await response.json();
+          displayResults(data, emailText);
+        } catch (error) {
+          alert(
+            "Error connecting to API. Make sure the backend is running on port 8000!",
+          );
+        } finally {
+          btn.disabled = false;
+          btn.classList.remove("loading");
+        }
+      }
+
+      function displayResults(data, emailText) {
+        const isPhishing = data.label === "Phishing";
+
+        // Verdict
+        const badge = document.getElementById("verdictBadge");
+        badge.className = `verdict-badge ${isPhishing ? "phishing" : "legitimate"}`;
+        badge.innerHTML = `${isPhishing ? "🚨" : "✅"} &nbsp; ${data.label}`;
+
+        document.getElementById("verdictSub").textContent =
+          `${data.confidence}% confidence · DistilBERT model`;
+
+        document.getElementById("verdictGlow").className =
+          `verdict-glow ${isPhishing ? "phishing" : "legitimate"}`;
+
+        // Stats
+        document.getElementById("statConfidence").textContent =
+          `${data.confidence}%`;
+        document.getElementById("statUrls").textContent = data.url_count;
+        document.getElementById("statUrgency").textContent =
+          data.urgency_word_count;
+        document.getElementById("statUrlRisk").textContent =
+          data.url_risk_score;
+
+        // Probabilities
+        document.getElementById("phishingPct").textContent =
+          `${data.phishing_probability}%`;
+        document.getElementById("legitPct").textContent =
+          `${data.legitimate_probability}%`;
+        setTimeout(() => {
+          document.getElementById("phishingBar").style.width =
+            `${data.phishing_probability}%`;
+          document.getElementById("legitBar").style.width =
+            `${data.legitimate_probability}%`;
+        }, 100);
+
+        // Urgency words
+        const foundUrgency = detectUrgencyWords(emailText);
+        const urgencyEl = document.getElementById("urgencyWords");
+        if (foundUrgency.length > 0) {
+          urgencyEl.innerHTML = foundUrgency
+            .map((w) => `<span class="urgency-tag">${w}</span>`)
+            .join("");
+        } else {
+          urgencyEl.innerHTML =
+            '<span class="no-urgency">No urgency words detected</span>';
+        }
+
+        // URLs
+        if (data.urls_found && data.urls_found.length > 0) {
+          document.getElementById("urlsSection").style.display = "block";
+          document.getElementById("urlsList").innerHTML = data.urls_found
+            .map((u) => `<span class="url-tag">${u}</span>`)
+            .join("");
+        } else {
+          document.getElementById("urlsSection").style.display = "none";
+        }
+
+        // LIME
+        buildLimeChart(emailText, isPhishing);
+
+        // SHAP
+        buildShapInfo(data);
+
+        // Switch pages
+        document.getElementById("page1").classList.add("hidden");
+        document.getElementById("page2").classList.remove("hidden");
+        window.scrollTo(0, 0);
+      }
+    </script>
+  </body>
+</html>

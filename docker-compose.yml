@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+
+  frontend:
+    image: nginx:alpine
+    ports:
+      - "3000:80"
+    volumes:
+      - ./frontend:/usr/share/nginx/html
+```
+
+---
+
+### **Step 4 — Create .dockerignore**
+Create inside `backend/` called `.dockerignore`:
+```
+__pycache__
+*.pyc
+*.pyo
+venv/
+.env
+```
+
+---
+
+### Your folder structure now:
+```
+PhishingDetector/
+├── backend/
+│   ├── main.py ✅
+│   ├── model_loader.py ✅
+│   ├── Dockerfile ✅
+│   ├── requirements.txt ✅
+│   ├── .dockerignore ✅
+│   └── bert_model/
+├── frontend/
+│   └── index.html ✅
+└── docker-compose.yml ✅
