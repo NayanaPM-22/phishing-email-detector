@@ -109,8 +109,7 @@ Open `frontend/index.html` in browser
 
 ## 👥 Team
 
-- Lekhanashree M (231AI016)
+- Nandeesh Nayak (231AI022)
 - Nayana Yogeshwari PM (231AI023)
-- Tanmai K (231AI039)
 
 **IT471 - Cyber Security Project**
